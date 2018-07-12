@@ -52,11 +52,14 @@
 
 
         var script1 = document.createElement('script');
-        script1.src = "//cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.2/chess.js";
+        script1.src = "//cdn.rawgit.com/ug-code/chess-engine-js/master/chess.min.js";
         document.getElementsByTagName('head')[0].appendChild(script1);
     };
-    var get_fen = async function (chess_fen) {
+
+
+    var init  = async function () {
         //fen kodu alma.
+        var chess_fen    = new Ug_Chess();
         var all_position = Controller.getPlayZone().getCurrentGame().getAllPositions();
 
         for (var key in all_position) {
@@ -69,14 +72,14 @@
 
             }
         }
-        return chess_fen.fen();
-    };
-    var init_stockfish = async function (stockfish, clean_fen) {
+        var clean_fen = chess_fen.fen();
+
+        var stockfish = STOCKFISH();
         var current_move;
         //benim hareket komutun geçidir sonra session yüklemek gerekir.
         stockfish.postMessage('position fen ' + clean_fen);
         //stockfish.postMessage('position fen rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
-        stockfish.postMessage('go depth 3');
+        stockfish.postMessage('go depth 15');
         stockfish.onmessage = function (event) {
             var line = event;
             if (line == 'uciok') {
@@ -91,7 +94,14 @@
                     //console.log("match[3]", match[3]);
                     current_move = match[1] + match[2];
                     console.log("current_move", current_move);
-                    return current_move;
+                    //benim hareket komutun geçidir sonra session yüklemek gerekir.
+                    Controller.getPlayZone().getCurrentGame().move(current_move);
+                    Controller.getPlayZone().initGameSession({
+                        "gameSessionToken": "bpokBl9XQmul9Yf2QpMV9Q",
+                        "authToken": "JRaJAARwRrCb6Zb2LX4EWg", "role": "b", "mode": "human", "chessGame": [],
+                        "stream": null, "playingServer":
+                            {"host": "playing14.chess24.com", "port": "443"}
+                    });
 
                 }
 
@@ -101,31 +111,15 @@
 
 
     };
-    var set_move       = function (current_move) {
-        //benim hareket komutun geçidir sonra session yüklemek gerekir.
-        Controller.getPlayZone().getCurrentGame().move(current_move);
-        Controller.getPlayZone().initGameSession({
-            "gameSessionToken": "bpokBl9XQmul9Yf2QpMV9Q",
-            "authToken": "JRaJAARwRrCb6Zb2LX4EWg", "role": "b", "mode": "human", "chessGame": [],
-            "stream": null, "playingServer":
-                {"host": "playing14.chess24.com", "port": "443"}
-        });
-    };
+
 
 
     script_load();
 
 
-    var stockfish = STOCKFISH();
-    var chess_fen    = new ChessF();
 
-    var clean_fen = get_fen(chess_fen);
-    console.log("clean_fen", clean_fen);
-    var curent_move = init_stockfish(stockfish, clean_fen);
-    console.log("curent_move", curent_move);
-    set_move(curent_move);
 
-    
+
 </script>
 
 

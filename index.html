@@ -1,0 +1,132 @@
+<script>
+    var stockfish       = STOCKFISH();
+    var current_move;
+    stockfish.onmessage = function (event) {
+        var line = event;
+        if (line == 'uciok') {
+            console.log("uciok");
+        } else if (line == 'readyok') {
+            console.log("readyok");
+        } else {
+            var match = line.match(/^bestmove ([a-h][1-8])([a-h][1-8])([qrbk])?/);
+            if (match) {
+                console.log("match[1]", match[1]);
+                console.log("match[2]", match[2]);
+                console.log("match[3]", match[3]);
+                current_move = match[1] + match[2];
+
+
+            }
+
+        }
+        //console.log(event.data);
+    };
+    //benim hareket komutun geçidir sonra session yüklemek gerekir.
+    stockfish.postMessage('position fen ' + clean_fen);
+    //stockfish.postMessage('position fen rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
+    stockfish.postMessage('go depth 3');
+</script>
+<script>
+    /*
+     var game = engineGame({book: 'book.bin'});
+     function newGame() {
+     var baseTime = parseFloat($('#timeBase').val()) * 60;
+     var inc = parseFloat($('#timeInc').val());
+     var skill = parseInt($('#skillLevel').val());
+     game.reset();
+     game.setTime(baseTime, inc);
+     game.setSkillLevel(skill);
+     game.setPlayerColor($('#color-white').hasClass('active') ? 'white' : 'black');
+     game.setDisplayScore($('#showScore').is(':checked'));
+     game.start();
+     }
+     newGame();
+     */
+</script>
+<script>
+    //script load
+    var script_load = function () {
+        var script = document.createElement('script');
+        script.src = "//cdn.rawgit.com/nmrugg/stockfish.js/master/src/stockfish.js";
+        document.getElementsByTagName('head')[0].appendChild(script);
+
+
+        var script1 = document.createElement('script');
+        script1.src = "//cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.2/chess.js";
+        document.getElementsByTagName('head')[0].appendChild(script1);
+    };
+    var get_fen = async function (chess_fen) {
+        //fen kodu alma.
+        var all_position = Controller.getPlayZone().getCurrentGame().getAllPositions();
+
+        for (var key in all_position) {
+            var current_lan = all_position[key].getSan();
+
+            if (typeof(current_lan) != "undefined") {
+                chess_fen.move(current_lan);
+                //console.log("key", key);
+                //console.log("current_lan", current_lan);
+
+            }
+        }
+        return chess_fen.fen();
+    };
+    var init_stockfish = async function (stockfish, clean_fen) {
+        var current_move;
+        //benim hareket komutun geçidir sonra session yüklemek gerekir.
+        stockfish.postMessage('position fen ' + clean_fen);
+        //stockfish.postMessage('position fen rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
+        stockfish.postMessage('go depth 3');
+        stockfish.onmessage = function (event) {
+            var line = event;
+            if (line == 'uciok') {
+                console.log("uciok");
+            } else if (line == 'readyok') {
+                console.log("readyok");
+            } else {
+                var match = line.match(/^bestmove ([a-h][1-8])([a-h][1-8])([qrbk])?/);
+                if (match) {
+                    console.log("match[1]", match[1]);
+                    console.log("match[2]", match[2]);
+                    //console.log("match[3]", match[3]);
+                    current_move = match[1] + match[2];
+                    console.log("current_move", current_move);
+                    return current_move;
+
+                }
+
+            }
+            //console.log(event.data);
+        };
+
+
+    };
+    var set_move       = function (current_move) {
+        //benim hareket komutun geçidir sonra session yüklemek gerekir.
+        Controller.getPlayZone().getCurrentGame().move(current_move);
+        Controller.getPlayZone().initGameSession({
+            "gameSessionToken": "bpokBl9XQmul9Yf2QpMV9Q",
+            "authToken": "JRaJAARwRrCb6Zb2LX4EWg", "role": "b", "mode": "human", "chessGame": [],
+            "stream": null, "playingServer":
+                {"host": "playing14.chess24.com", "port": "443"}
+        });
+    };
+
+
+    script_load();
+
+
+    var stockfish = STOCKFISH();
+    var chess_fen    = new ChessF();
+
+    var clean_fen = get_fen(chess_fen);
+    console.log("clean_fen", clean_fen);
+    var curent_move = init_stockfish(stockfish, clean_fen);
+    console.log("curent_move", curent_move);
+    set_move(curent_move);
+
+    
+</script>
+
+
+
